@@ -1,0 +1,59 @@
+[project]
+name = "arxiv2agent"
+version = "0.5.0"
+description = "Convert arXiv papers into agent-friendly digest folders: paper.json + sections/*.md + per-entity files."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+  {name = "Oscar Wu"},
+]
+keywords = ["arxiv", "latex", "research", "agent", "llm", "structured-data"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Text Processing :: Markup :: LaTeX",
+]
+dependencies = [
+  # Direct deps for vendored LaTeX pipeline (originally arxiv-to-prompt's deps).
+  # See NOTICE.md for attribution to arxiv-to-prompt (MIT, © Takashi Ishida).
+  "requests>=2.25.0",
+  "filelock>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0",
+  "ruff>=0.5",
+]
+
+[project.scripts]
+arxiv2agent = "arxiv2agent.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/wuyoscar/arxiv2agent"
+Issues = "https://github.com/wuyoscar/arxiv2agent/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arxiv2agent"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "corpus: golden-corpus regression over real papers (network on first run, cached after)",
+  "e2e: full CLI-to-folder smoke test (network on first run)",
+]
+# Default run is offline unit tests only; opt in with `pytest -m corpus` / `-m e2e`.
+addopts = "-m 'not corpus and not e2e'"

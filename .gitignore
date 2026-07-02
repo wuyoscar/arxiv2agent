@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+dist/
+build/
+*.egg
+.DS_Store
+*.swp
+
+# internal dev artifacts (AgenticCarlini runbooks) — not part of the open-source tool
+program.md
+tasks/

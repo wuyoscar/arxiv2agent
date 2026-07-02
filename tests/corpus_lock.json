@@ -1,0 +1,11 @@
+{
+  "comment": "Golden-corpus manifest. Sources are downloaded on demand (cached under the arxiv-to-prompt cache dir) — never committed, to respect arXiv licensing. A golden mismatch either means an extraction regression OR the paper published a new version; check `arxiv.org/abs/<id>` before re-running `pytest -m corpus --update-golden`.",
+  "papers": [
+    {"arxiv_id": "1706.03762", "why": "Attention Is All You Need — NeurIPS template, equations-heavy"},
+    {"arxiv_id": "1512.03385", "why": "ResNet — IEEE/CVPR two-column, older LaTeX style"},
+    {"arxiv_id": "1810.04805", "why": "BERT — ACL/NAACL template"},
+    {"arxiv_id": "2005.14165", "why": "GPT-3 — very long, appendix-heavy, many tables"},
+    {"arxiv_id": "2203.02155", "why": "InstructGPT — modern preprint style"},
+    {"arxiv_id": "2305.13860", "why": "README example — LLM jailbreak paper, listings/prompts"}
+  ]
+}
