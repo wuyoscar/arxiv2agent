@@ -42,7 +42,7 @@ intros = {
 }
 ```
 
-**2.「参考这篇论文的 Fig 2 矢量图，生成一个风格类似的」** — `figures/fig-*.pdf` 是从源码拷出的原始矢量图（多子图全部保留），是真正可参考的资产，不是截图。
+**2.「参考这篇论文的 Fig 2 矢量图，生成一个风格类似的」** — `figures/fig-*.pdf` 是从源码拷出的原始矢量图（多子图全部保留），是真正可参考的资产，不是截图。图像生成部分可以搭配我的 [GPT-Image2-Skill](https://github.com/wuyoscar/GPT-Image2-Skill) 使用：本工具负责把参考图检索出来，它负责生成。
 
 **3.「这篇论文 Related Work 引用了哪些论文？BibTeX 直接给我」** — `references.json` 里每个引用键都有解析好的标题/作者/年份 + 原文 `bib_raw`，还有 `cited_in` 标明在哪些章节被引。
 
