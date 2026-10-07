@@ -1,6 +1,7 @@
-"""arxiv2agent — turn an arXiv paper into an agent-friendly digest folder."""
+"""arxiv2agent — find, fetch, and digest arXiv papers for agents."""
 
 from arxiv2agent.core import digest
+from arxiv2agent.fetch import fetch
 from arxiv2agent.schema import (
     Algorithm,
     Citation,
@@ -13,10 +14,13 @@ from arxiv2agent.schema import (
     Section,
     Table,
 )
+from arxiv2agent.search import find
 from arxiv2agent.writer import write_digest
 
-__version__ = "0.4.0"
+__version__ = "0.6.0"
 __all__ = [
+    "find",
+    "fetch",
     "digest",
     "write_digest",
     "Paper",

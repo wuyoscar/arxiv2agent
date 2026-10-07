@@ -1,93 +1,109 @@
-"""arxiv2agent CLI — turn arXiv papers into agent-friendly digest folders.
+"""arxiv2agent CLI — find, fetch, and digest arXiv papers for agents.
 
-Accepts a LIST of arXiv IDs and processes them sequentially (the built-in
-politeness throttle spaces the network requests). One failing paper does not
-abort the batch. Output is always self-contained folders; see README.md
-inside any output folder for navigation guidance.
+    arxiv2agent find "Attention Is All You Need"     # title → candidate IDs
+    arxiv2agent fetch 1706.03762 -o papers/           # raw LaTeX source + flattened .tex
+    arxiv2agent digest 1706.03762 -o papers/          # structured digest folder
+
+fetch/digest accept a LIST of IDs and process them sequentially (the built-in
+politeness throttle spaces the requests). One failing paper does not abort
+the batch.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from arxiv2agent.core import digest
+from arxiv2agent.fetch import fetch
+from arxiv2agent.search import find
 from arxiv2agent.writer import write_digest
 
 
-def _run_one(arxiv_id: str | None, local_folder: str | None, args) -> int:
-    paper = digest(arxiv_id=arxiv_id, local_folder=local_folder)
+def _cmd_find(args) -> int:
+    results = find(" ".join(args.title), max_results=args.n)
+    if args.json:
+        print(json.dumps(results, ensure_ascii=False, indent=2))
+    else:
+        for r in results:
+            first = r["authors"][0] if r["authors"] else "?"
+            etal = " et al." if len(r["authors"]) > 1 else ""
+            print(f"{r['id']}\t{r['year']}\t{r['title']}\t{first}{etal}")
+    if not results:
+        print("No arXiv match.", file=sys.stderr)
+        return 1
+    return 0
 
+
+def _digest_one(arxiv_id: str | None, local_folder: str | None, args) -> None:
+    paper = digest(arxiv_id=arxiv_id, local_folder=local_folder)
     if local_folder:
         source_folder = local_folder
     else:
         from arxiv2agent._tex import get_default_cache_dir
         source_folder = str(get_default_cache_dir() / arxiv_id)
+    out = write_digest(paper, output_dir=args.output, source_folder=source_folder)
+    print(f"Wrote: {out}", file=sys.stderr)
 
-    out_root = write_digest(
-        paper, output_dir=args.output, source_folder=source_folder,
-        include_source=args.include_source,
-    )
-    print(f"Wrote: {out_root}", file=sys.stderr)
-    return 0
+
+def _fetch_one(arxiv_id: str, _local_folder, args) -> None:
+    print(f"Wrote: {fetch(arxiv_id, args.output)}", file=sys.stderr)
+
+
+def _batch(run_one, args) -> int:
+    failures: list[str] = []
+    for arxiv_id in args.arxiv_ids:
+        try:
+            run_one(arxiv_id, None, args)
+        except Exception as exc:  # keep the batch going; report at the end
+            failures.append(arxiv_id)
+            print(f"FAILED: {arxiv_id} — {exc}", file=sys.stderr)
+    n = len(args.arxiv_ids)
+    if n > 1:
+        print(f"Done: {n - len(failures)}/{n} papers.", file=sys.stderr)
+    if failures:
+        print(f"Failed IDs: {' '.join(failures)}", file=sys.stderr)
+    return 1 if failures else 0
 
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(
         prog="arxiv2agent",
-        description=(
-            "Convert arXiv papers into agent-friendly DIGEST folders "
-            "(README.md + paper.json + sections/*.md + entities + assets). "
-            "Pass multiple IDs to batch-process sequentially."
-        ),
+        description="Find, download, and extract arXiv papers for agents.",
     )
-    p.add_argument(
-        "arxiv_ids",
-        nargs="*",
-        metavar="ARXIV_ID",
-        help="One or more arXiv IDs (e.g. 2305.13860 1706.03762). "
-             "Omit with --local-folder.",
-    )
-    p.add_argument(
-        "-o", "--output",
-        default=".",
-        help="Parent directory; each digest lands at <output>/<arxiv_id>/ "
-             "(default: current dir).",
-    )
-    p.add_argument(
-        "--local-folder",
-        help="Use a local LaTeX folder instead of downloading from arXiv.",
-    )
-    p.add_argument(
-        "--include-source",
-        action="store_true",
-        help="Also mirror the original LaTeX tree into <digest>/source/ for audit. "
-             "Off by default (most agents don't need it; it inflates the digest ~50×).",
-    )
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    pf = sub.add_parser("find", help="Search arXiv by title; print candidate IDs.")
+    pf.add_argument("title", nargs="+")
+    pf.add_argument("-n", type=int, default=5, help="max candidates (default 5)")
+    pf.add_argument("--json", action="store_true", help="print JSON instead of TSV")
+
+    for name, help_ in (
+        ("fetch", "Download LaTeX source: <out>/<id>/source/ + <out>/<id>/<id>.tex"),
+        ("digest", "Structured digest: paper.json + sections/ + figures/tables/…"),
+    ):
+        sp = sub.add_parser(name, help=help_)
+        sp.add_argument("arxiv_ids", nargs="*", metavar="ARXIV_ID")
+        sp.add_argument("-o", "--output", default=".", help="parent dir (default: .)")
+        if name == "digest":
+            sp.add_argument("--local-folder", help="digest a local LaTeX folder instead")
+
     args = p.parse_args(argv)
 
-    if not args.arxiv_ids and not args.local_folder:
-        p.error("Provide at least one arxiv_id or --local-folder.")
-    if args.arxiv_ids and args.local_folder:
-        p.error("arxiv_ids and --local-folder are mutually exclusive.")
+    if args.cmd == "find":
+        return _cmd_find(args)
+    if args.cmd == "fetch":
+        if not args.arxiv_ids:
+            p.error("fetch: provide at least one ARXIV_ID.")
+        return _batch(_fetch_one, args)
 
+    if bool(args.arxiv_ids) == bool(args.local_folder):
+        p.error("digest: provide ARXIV_IDs or --local-folder (not both).")
     if args.local_folder:
-        return _run_one(None, args.local_folder, args)
-
-    failures: list[str] = []
-    for arxiv_id in args.arxiv_ids:
-        try:
-            _run_one(arxiv_id, None, args)
-        except Exception as exc:  # keep the batch going; report at the end
-            failures.append(arxiv_id)
-            print(f"FAILED: {arxiv_id} — {exc}", file=sys.stderr)
-
-    n = len(args.arxiv_ids)
-    if n > 1:
-        print(f"Done: {n - len(failures)}/{n} papers digested.", file=sys.stderr)
-    if failures:
-        print(f"Failed IDs: {' '.join(failures)}", file=sys.stderr)
-    return 1 if failures else 0
+        _digest_one(None, args.local_folder, args)
+        return 0
+    return _batch(_digest_one, args)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 [project]
 name = "arxiv2agent"
-version = "0.5.0"
-description = "Convert arXiv papers into agent-friendly digest folders: paper.json + sections/*.md + per-entity files."
+version = "0.6.0"
+description = "Find, download, and extract arXiv papers for agents: raw LaTeX source, flattened .tex, or a structured digest."
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}

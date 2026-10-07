@@ -18,7 +18,7 @@ _ARXIV_ID = "1706.03762"
 
 @pytest.mark.e2e
 def test_cli_writes_complete_digest_folder(tmp_path: Path) -> None:
-    rc = main([_ARXIV_ID, "-o", str(tmp_path)])
+    rc = main(["digest", _ARXIV_ID, "-o", str(tmp_path)])
     assert rc == 0
 
     root = tmp_path / _ARXIV_ID

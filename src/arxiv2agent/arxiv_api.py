@@ -28,7 +28,7 @@ from typing import Optional
 
 _ABS_URL = "https://arxiv.org/abs/{arxiv_id}"
 _CACHE_FILENAME = ".arxiv_api_meta.json"
-_USER_AGENT = "arxiv2agent/0.5 (structured paper digests for agents)"
+_USER_AGENT = "arxiv2agent/0.6 (arXiv papers for agents)"
 
 # arXiv asks for ≥3s between requests. Enforce it in-process so batch loops
 # (10 papers in a list comprehension) don't get 429'd — cache hits skip the

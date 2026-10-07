@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5b6472"/>
+    </marker>
+  </defs>
+  <rect width="900" height="330" rx="14" fill="#fbfaf7"/>
+
+  <!-- input -->
+  <rect x="30" y="135" width="150" height="60" rx="10" fill="#fff" stroke="#c9ccd2"/>
+  <text x="105" y="160" text-anchor="middle" font-size="14" fill="#1f2937">"Attention Is</text>
+  <text x="105" y="180" text-anchor="middle" font-size="14" fill="#1f2937">All You Need"</text>
+
+  <!-- find -->
+  <line x1="180" y1="165" x2="268" y2="165" stroke="#5b6472" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="224" y="155" text-anchor="middle" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#b45309">find</text>
+  <text x="224" y="186" text-anchor="middle" font-size="11" fill="#6b7280">arXiv API</text>
+
+  <!-- id -->
+  <rect x="270" y="140" width="120" height="50" rx="10" fill="#fff" stroke="#c9ccd2"/>
+  <text x="330" y="170" text-anchor="middle" font-size="15" font-family="ui-monospace, Menlo, monospace" fill="#1f2937">1706.03762</text>
+
+  <!-- branches -->
+  <path d="M390,155 C440,155 440,80 488,80" fill="none" stroke="#5b6472" stroke-width="1.6" marker-end="url(#a)"/>
+  <path d="M390,175 C440,175 440,245 488,245" fill="none" stroke="#5b6472" stroke-width="1.6" marker-end="url(#a)"/>
+  <text x="474" y="68" text-anchor="end" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1d4ed8">fetch</text>
+  <text x="474" y="272" text-anchor="end" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#047857">digest</text>
+
+  <!-- fetch output -->
+  <rect x="490" y="30" width="380" height="100" rx="10" fill="#eff4ff" stroke="#bfd0f5"/>
+  <text x="506" y="55" font-size="13" font-weight="600" fill="#1d4ed8">raw LaTeX source</text>
+  <text x="506" y="80" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1f2937">source/</text>
+  <text x="640" y="80" font-size="12" fill="#4b5563">untouched tree: .tex .sty .bib figures</text>
+  <text x="506" y="106" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1f2937">1706.03762.tex</text>
+  <text x="640" y="106" font-size="12" fill="#4b5563">one file, \input expanded, comments kept</text>
+
+  <!-- digest output -->
+  <rect x="490" y="160" width="380" height="145" rx="10" fill="#ecfaf3" stroke="#b5e3cc"/>
+  <text x="506" y="185" font-size="13" font-weight="600" fill="#047857">structured digest</text>
+  <text x="506" y="210" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1f2937">paper.json</text>
+  <text x="640" y="210" font-size="12" fill="#4b5563">everything, one schema for every paper</text>
+  <text x="506" y="234" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1f2937">sections/*.md</text>
+  <text x="640" y="234" font-size="12" fill="#4b5563">one markdown file per section</text>
+  <text x="506" y="258" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1f2937">figures/ tables/</text>
+  <text x="640" y="258" font-size="12" fill="#4b5563">original PDFs/PNGs, raw tabular .tex</text>
+  <text x="506" y="282" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1f2937">equations/ …</text>
+  <text x="640" y="282" font-size="12" fill="#4b5563">+ listings, references.json (BibTeX)</text>
+</svg>
