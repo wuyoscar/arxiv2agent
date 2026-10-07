@@ -134,3 +134,39 @@ def test_affiliation_corporate_email_domain():
 
 def test_clean_affiliation_strips_markers_and_emails():
     assert _clean_affiliation(r"University of X$^{\dagger}$ \\ \texttt{a@x.edu}") == "University of X"
+
+
+# ── issue #1: \subfile{} (subfiles package) must be expanded like \input ──
+
+def test_flatten_expands_subfile_and_strips_wrapper(tmp_path):
+    from arxiv2agent._tex import flatten_tex
+    (tmp_path / "subfiles").mkdir()
+    (tmp_path / "main.tex").write_text(
+        "\\documentclass{article}\n\\usepackage{subfiles}\n\\begin{document}\n"
+        "\\subfile{subfiles/part_01.tex}\n\\subfile{subfiles/part_02}\n"
+        "% \\subfile{subfiles/dropped}\n\\end{document}\n"
+    )
+    (tmp_path / "subfiles" / "part_01.tex").write_text(
+        "\\documentclass[../main.tex]{subfiles}\n\\begin{document}\n"
+        "\\section{Intro}\nBody one.\n\\end{document}\n"
+    )
+    (tmp_path / "subfiles" / "part_02.tex").write_text("\\section{Bare}\nBody two.\n")
+    (tmp_path / "subfiles" / "dropped.tex").write_text("SHOULD NOT APPEAR\n")
+
+    flat = flatten_tex(str(tmp_path), "main.tex")
+    assert "\\section{Intro}\nBody one." in flat
+    assert "\\section{Bare}\nBody two." in flat
+    assert "[../main.tex]{subfiles}" not in flat          # wrapper stripped
+    assert flat.count("\\begin{document}") == 1            # only main's
+    assert "SHOULD NOT APPEAR" not in flat                 # commented directive kept as-is
+
+
+def test_flatten_subfile_relative_to_including_file(tmp_path):
+    from arxiv2agent._tex import flatten_tex
+    (tmp_path / "chapters" / "parts").mkdir(parents=True)
+    (tmp_path / "main.tex").write_text(
+        "\\begin{document}\n\\input{chapters/ch1}\n\\end{document}\n"
+    )
+    (tmp_path / "chapters" / "ch1.tex").write_text("\\subfile{parts/p}\n")
+    (tmp_path / "chapters" / "parts" / "p.tex").write_text("Nested body.\n")
+    assert "Nested body." in flatten_tex(str(tmp_path), "main.tex")

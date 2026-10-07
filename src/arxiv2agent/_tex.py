@@ -272,10 +272,23 @@ def find_main_tex(directory: str) -> Optional[str]:
     return best[4]
 
 
-def flatten_tex(directory: str, main_file: str) -> str:
-    """Recursively expand \\input / \\include directives into one big string.
+_SUBFILE_BODY_RE = re.compile(r'\\begin\{document\}(.*)\\end\{document\}', re.DOTALL)
 
-    Comment-aware: \\input statements on commented lines are left untouched.
+
+def _subfile_body(text: str) -> str:
+    """Strip a subfile's own preamble / document wrapper, if it has one."""
+    if '\\documentclass' not in text:
+        return text
+    m = _SUBFILE_BODY_RE.search(text)
+    return m.group(1) if m else text
+
+
+def flatten_tex(directory: str, main_file: str) -> str:
+    """Recursively expand \\input / \\include / \\subfile directives into one big string.
+
+    Comment-aware: directives on commented lines are left untouched. A
+    ``\\subfile`` target is a standalone document (``\\documentclass[main]{subfiles}``
+    + its own ``\\begin{document}``); only its body is inlined.
     """
     def process_file(file_path: str, processed: set) -> str:
         if file_path in processed:
@@ -312,15 +325,24 @@ def flatten_tex(directory: str, main_file: str) -> str:
             if comment_pos != -1:
                 return match.group(0)
 
-            input_file = match.group(1)
+            command, input_file = match.group(1), match.group(2)
             if not input_file.endswith('.tex'):
                 tex_path = os.path.join(directory, input_file + '.tex')
                 input_path = tex_path if os.path.isfile(tex_path) else os.path.join(directory, input_file)
             else:
                 input_path = os.path.join(directory, input_file)
-            return process_file(input_path, processed)
+            if command != 'subfile':
+                return process_file(input_path, processed)
+            if not os.path.isfile(input_path):
+                # subfiles also resolves paths relative to the including file
+                base = os.path.dirname(file_path)
+                for name in (input_file + '.tex', input_file):
+                    if os.path.isfile(os.path.join(base, name)):
+                        input_path = os.path.join(base, name)
+                        break
+            return _subfile_body(process_file(input_path, processed))
 
-        return re.sub(r'\\(?:input|include){([^}]+)}', replace_input, content)
+        return re.sub(r'\\(input|include|subfile){([^}]+)}', replace_input, content)
 
     main_path = os.path.join(directory, main_file)
     return process_file(main_path, set())
